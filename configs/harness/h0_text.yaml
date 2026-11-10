@@ -1,0 +1,12 @@
+# Seed with text-parsed tool calls instead of native function calling.
+name: h0_text
+tools: broad
+tool_format: text
+instructions: minimal
+profile_card: false
+evidence_tool: false
+verify_before_submit: false
+claim_audit: false
+long_text: full
+recovery: none
+max_steps: 20

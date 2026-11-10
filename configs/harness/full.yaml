@@ -1,0 +1,12 @@
+# Every component on. Starting point for leave-one-out ablations and for tuning.
+name: full
+tools: broad
+tool_format: native
+instructions: workflow
+profile_card: true
+evidence_tool: true
+verify_before_submit: true
+claim_audit: true
+long_text: key_sections
+recovery: retry_loop
+max_steps: 24

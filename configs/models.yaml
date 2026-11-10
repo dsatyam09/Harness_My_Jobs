@@ -1,0 +1,19 @@
+# One vLLM server per model. Ports are examples; match them to scripts/serve_vllm.sh.
+# Sampling follows each model card's recommendation; change only if you document why.
+gpt-oss-120b:
+  base_url: http://localhost:8000/v1
+  model: openai/gpt-oss-120b
+  temperature: 1.0
+  max_tokens: 2048
+  extra_body: {reasoning_effort: low}
+gpt-oss-20b:
+  base_url: http://localhost:8001/v1
+  model: openai/gpt-oss-20b
+  temperature: 1.0
+  max_tokens: 2048
+  extra_body: {reasoning_effort: low}
+qwen3-30b-a3b:
+  base_url: http://localhost:8002/v1
+  model: Qwen/Qwen3-30B-A3B-Instruct-2507
+  temperature: 0.7
+  max_tokens: 2048

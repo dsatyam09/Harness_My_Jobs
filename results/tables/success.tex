@@ -1,0 +1,20 @@
+{\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrrr}
+\toprule
+Model / harness & Search & Extraction & Ranking & Application & Tailoring & Overall [95\% CI] \\
+\midrule
+baseline:bm25-top5 & 0 & -- & -- & -- & -- & -- \\
+baseline:copy-profile & -- & -- & -- & -- & 100 & -- \\
+baseline:majority & -- & -- & -- & 0 & -- & -- \\
+baseline:random & -- & -- & 0 & -- & -- & -- \\
+baseline:regex & -- & 75 & -- & -- & -- & -- \\
+baseline:skill-overlap & -- & -- & 58 & -- & -- & -- \\
+baseline:title-only & 0 & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\smallskip
+{\footnotesize Task success rate (\%), averaged over trials; CIs bootstrap over tasks (1,000 resamples). Baselines apply only to some families.\par}
+}

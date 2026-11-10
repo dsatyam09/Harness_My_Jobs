@@ -1,0 +1,12 @@
+data/
+runs/
+results/*.csv
+results_ci/
+annotations/*_key.csv
+__pycache__/
+*.egg-info/
+.pytest_cache/
+logs/
+.venv/
+*.zip
+*.csv.gz

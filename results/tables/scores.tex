@@ -1,0 +1,20 @@
+{\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{lrrrrr}
+\toprule
+Model / harness & Search (F1) & Extraction (Field acc.) & Ranking (nDCG@5) & Application (Field acc.) & Tailoring (Coverage) \\
+\midrule
+baseline:bm25-top5 & 0.02 & -- & -- & -- & -- \\
+baseline:copy-profile & -- & -- & -- & -- & 0.85 \\
+baseline:majority & -- & -- & -- & 0.38 & -- \\
+baseline:random & -- & -- & 0.39 & -- & -- \\
+baseline:regex & -- & 0.94 & -- & -- & -- \\
+baseline:skill-overlap & -- & -- & 0.82 & -- & -- \\
+baseline:title-only & 0.18 & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\smallskip
+{\footnotesize Continuous scores averaged over tasks and trials.\par}
+}

@@ -1,0 +1,12 @@
+# Seed + sensors only (check the model's output afterwards).
+name: h0_sensors
+tools: broad
+tool_format: native
+instructions: minimal
+profile_card: false
+evidence_tool: true
+verify_before_submit: true
+claim_audit: true
+long_text: full
+recovery: retry_loop
+max_steps: 20

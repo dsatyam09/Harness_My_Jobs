@@ -1,0 +1,35 @@
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[dev,mcp]"
+      - run: pytest -q
+
+  # Multi-model regression gate. Runs on a self-hosted runner that can reach the vLLM
+  # servers and holds the (unredistributed) data folder. Trigger manually or with the
+  # "run-eval" label on a pull request.
+  eval-gate:
+    needs: tests
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'run-eval')
+    runs-on: [self-hosted, gpu]
+    env:
+      DATA_DIR: ${{ vars.JOBHARNESS_DATA_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -e .
+      - run: >
+          python -m jobharness.run --data "$DATA_DIR" --tasks "$DATA_DIR/tasks_dev.jsonl"
+          --limit-per-family 3 --model gpt-oss-120b gpt-oss-20b qwen3-30b-a3b
+          --harness configs/harness/full.yaml --trials 1 --out runs/ci.jsonl
+      - run: python -m jobharness.analyze runs/ci.jsonl --out results_ci
+      - run: python -m jobharness.gate --summary results_ci/summary.csv --baseline configs/gate_baseline.json

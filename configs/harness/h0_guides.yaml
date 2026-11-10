@@ -1,0 +1,12 @@
+# Seed + guides only (act before the model does).
+name: h0_guides
+tools: broad
+tool_format: native
+instructions: workflow
+profile_card: true
+evidence_tool: false
+verify_before_submit: false
+claim_audit: false
+long_text: full
+recovery: none
+max_steps: 20

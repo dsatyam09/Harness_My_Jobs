@@ -1,0 +1,345 @@
+% JobHarness -- Milestone 2 Progress Report
+% Compiles with pdfLaTeX (Overleaf default) or XeLaTeX.
+%
+% BEFORE SUBMITTING
+%  1. Copy results/tables/*.tex into a folder "tables/" and results/figures/*.png into
+%     "figures/" next to this file. Tables then appear automatically.
+%  2. Replace every red [bracketed] note with your own observations, or delete it.
+%     Search the source for \fillin to find them all.
+%  3. Change any status in Section 2 that you have not actually completed.
+%  4. Check every reference and link opens.
+
+\documentclass[11pt]{article}
+
+% ---------- Packages ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathpazo}              % Palatino text and math
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{needspace}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue, citecolor=blue]{hyperref}
+
+% ---------- Layout ----------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt}
+\renewcommand{\arraystretch}{1.25}
+\setlength{\emergencystretch}{2em}
+\setlist{itemsep=2pt, topsep=4pt}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+% Red placeholder: every one of these must be replaced before submission.
+\newcommand{\fillin}[1]{\textcolor{red}{[#1]}}
+% Pulls in a generated table if it exists; otherwise shows a red placeholder.
+\newcommand{\resulttable}[1]{%
+  \IfFileExists{tables/#1.tex}%
+    {\input{tables/#1.tex}}%
+    {\fillin{Run the pilot and copy results/tables/\detokenize{#1}.tex into tables/}}}
+\newcommand{\resultfigure}[1]{%
+  \IfFileExists{figures/#1}%
+    {\includegraphics[width=\linewidth]{figures/#1}}%
+    {\fillin{Run the pilot and copy results/figures/\detokenize{#1} into figures/}}}
+\newcommand{\repo}{\fillin{repository URL}}
+
+\hypersetup{
+  pdftitle={JobHarness: Milestone 2 Progress Report},
+  pdfauthor={Satyam and PN Tejeshwar Sarma}
+}
+
+\begin{document}
+
+% ---------- Title ----------
+\begin{center}
+  {\LARGE JobHarness: Do Agent Harnesses Tuned on Large\\[2pt] Open Models Transfer to Small Self-Hosted Models?\par}
+
+  \vspace{6pt}
+  {\large Milestone 2 Progress Report\par}
+  \vspace{8pt}
+  {\large PN Tejeshwar Sarma and Satyam Dubey\par}
+  \vspace{4pt}
+  Repository: \repo
+\end{center}
+\vspace{6pt}
+
+% =====================================================================
+\section{Project Identification and Updated Question}
+
+\textbf{Title.} JobHarness: Do Agent Harnesses Tuned on Large Open Models Transfer to Small Self-Hosted Models? A Job-Search Case Study.
+
+\textbf{Project option and team.} Applied NLP Project. Team members: Satyam and PN Tejeshwar Sarma.
+
+\textbf{Research question (unchanged).} When a job-search agent's harness is tuned with a large open model, does it improve small self-hosted models by a comparable amount, or does its benefit stay tied to the model it was tuned on? The sub-questions are unchanged: downward transfer (SQ1), which component types transfer (SQ2: guides, sensors, structure), gap closure and cost (SQ3), and differences across NLP sub-skills (SQ4).
+
+\textbf{What changed since Milestone 1.} The question is the same. Building the sandbox and running the pilot led to six design changes:
+
+{\small
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.34\linewidth} L}
+\toprule
+Change & Reason \\
+\midrule
+Constraint and fabrication checkers redesigned as an \textit{evidence lookup} tool and \textit{model self-checks} & A code-based checker would reuse the same text rules as our graders, so it would effectively hand the agent the answer key and inflate the sensor results. The evidence tool returns sentences, never verdicts, and the self-checks ask the model to re-verify its own answer \\
+% Keep the next row only if your audit (Table 2) supports it.
+Experience level dropped as a search constraint & The audit (Table~2) shows the experience level is stated in the description for only \fillin{X}\% of postings that have one. It is LinkedIn metadata, so an agent reading the text cannot recover it \\
+Fit ranking uses 10 postings and nDCG@5 instead of 20 and nDCG@10 & Twenty full descriptions exceed what the small models handle well in context; we will revisit this for the final evaluation \\
+End-to-end workflow family deferred to the final phase & It depends on the other families and on a stable tool loop; the five single-step families come first \\
+Non-LLM reference baselines added & Every family now has a lower bound that needs no model. Baselines that share rules with the answer key are marked \textit{label-aligned} and read as a ceiling for pattern matching, not as competitors \\
+Pilot uses single-type harness variants & Before tuning $H_L$ and $H_S$, the pilot compares the seed harness with a guides-only and a sensors-only variant: a first, cheap test of H2 \\
+\bottomrule
+\end{tabularx}
+}
+
+% =====================================================================
+\section{Work Completed}
+
+``Completed'' below means the code runs, the outputs are in the repository at commit \fillin{commit hash}, and the results appear in Section~4.
+
+{\small
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.36\linewidth} >{\raggedright\arraybackslash}p{0.13\linewidth} L}
+\toprule
+Work item & Status & Artifact \\
+\midrule
+Data acquisition, cleaning and dataset audit & Completed & \texttt{jobharness/data.py}; Table~2 \\
+Job-board sandbox (BM25 search, reading and evidence tools, MCP server) & Completed & \texttt{env.py}, \texttt{mcp\_server.py} \\
+Synthetic candidate profiles & Completed & \texttt{profiles.py}; \texttt{data/profiles.json} \\
+Task suite (five families) and automatic graders & Completed & \texttt{tasks.py}, \texttt{graders.py}; Table~3 \\
+Modular harness (eight switchable components) & Completed & \texttt{harness.py}, \texttt{configs/harness/} \\
+Model serving with vLLM & Completed & \texttt{scripts/serve\_vllm.sh}; \fillin{models served} \\
+Non-LLM baselines & Completed & \texttt{baselines.py}; Table~4 \\
+Pilot runs on the development set & Completed & \texttt{runs/pilot.jsonl}; Tables~4--8, Figure~1 \\
+Analysis pipeline (CIs, paired tests, transfer metrics) & Completed & \texttt{analyze.py} \\
+Annotation guidelines and grader validation & Completed & \texttt{annotate.py}, \texttt{annotations/}; Table~9 \\
+Error analysis of failed runs & Completed & \texttt{results/error\_sample.csv}; Table~10 \\
+Test suite and CI (unit tests on every push; eval-gate job defined) & Completed & \texttt{tests/}, \texttt{.github/workflows/ci.yml} \\
+Tuning $H_L$ (large model) and $H_S$ (small model) & In progress & \fillin{status} \\
+JobHarness copilot (web UI on top of the MCP server) & In progress & \fillin{status} \\
+Transfer matrix on the test set, ablations, external validity, fairness probe & Planned & Section~6 \\
+\bottomrule
+\end{tabularx}
+}
+
+% =====================================================================
+\section{Methods and Evidence}
+
+\subsection{Data}
+We use the \href{https://www.kaggle.com/datasets/arshkon/linkedin-job-postings}{LinkedIn Job Postings (2023--2024)} dataset (124K+ postings; CC BY-SA on OpenML). We load the CSV with DuckDB, keep postings with a title and a description longer than 200 characters, remove duplicate job IDs, and draw a fixed random sample of \fillin{8,000} postings (seed 13). Pay is normalized to yearly amounts (hourly $\times$ 2,080, monthly $\times$ 12, weekly $\times$ 52, biweekly $\times$ 26).
+
+The audit checks, for each posting, whether the description states the same value as each structured column. A salary counts as stated if every non-empty salary column appears among the dollar amounts in the text within 2\%. Remote work counts as stated if the text mentions remote work and does not negate it. Work type and experience level are matched with keyword patterns. Only postings whose salary and remote status are consistent between text and columns enter the sandbox, so every hidden answer can be recovered by reading. Skills are extracted with a fixed vocabulary of 74 concrete skills across eight role clusters; generic soft skills are excluded because they appear in almost every posting.
+
+\subsection{Synthetic profiles and task suite}
+We generate 64 synthetic candidate profiles (eight per role cluster, seeded), each with skills, a work history whose years sum to total experience, a home state, remote and relocation preferences, a salary floor drawn from the cluster's salary distribution, sponsorship needs and a highest degree. No real personal data is used.
+
+Five task families are generated with hidden answers: \textit{search} (``find every posting whose title contains X, allows remote work, and states a minimum salary of at least \$Y''), \textit{extraction} (salary range, pay period and remote status of one posting), \textit{ranking} (order 10 postings for a candidate), \textit{application} (five screening questions answered from the profile), and \textit{tailoring} (three r\'esum\'e bullets for a job, using only profile facts). Ranking labels are 0 when a posting violates a hard requirement stated in its text (location and relocation, remote preference, stated maximum salary below the candidate's floor, no sponsorship when needed) and otherwise 1--3 by the share of the posting's skills the candidate has. Tasks are split 25\% development and 75\% test per family; the test split is untouched until the final evaluation.
+
+\subsection{Sandbox, harness and models}
+The agent reaches the sandbox only through tools: keyword search (BM25 over titles and descriptions), reading a posting, reading a profile, an optional evidence lookup, and \texttt{submit\_answer}. A unit test checks that no tool ever returns a hidden field. The harness is a tool-calling loop in which each component is a switch in a YAML profile:
+
+{\small
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.22\linewidth} L >{\raggedright\arraybackslash}p{0.11\linewidth}}
+\toprule
+Component & Levels & Type \\
+\midrule
+Tool design & A few broad tools, or many narrow tools & Structure \\
+Tool-call format & Native function calling, or text-parsed \texttt{<tool\_call>} blocks & Structure \\
+Instructions & Minimal, or a five-step workflow prompt & Guide \\
+Profile card & None, or a structured candidate summary pinned in context & Guide \\
+Evidence tool & Off, or on: returns the sentences of a posting about one aspect & Sensor \\
+Verify before submit & Off, or one forced self-check round before an answer is accepted & Sensor \\
+Claim audit (tailoring) & Off, or a forced audit of every claim against the profile & Sensor \\
+Long-text handling & Full description, truncation, or key sentences only & Structure \\
+Error recovery & None, corrective retry, or retry plus a repeated-action detector & Sensor \\
+\bottomrule
+\end{tabularx}
+}
+
+The pilot uses three profiles: \texttt{h0} (seed: minimal instructions, broad tools, nothing else), \texttt{h0\_guides} (workflow prompt and profile card), and \texttt{h0\_sensors} (evidence tool, verification, claim audit and recovery). Models are served with vLLM \fillin{version} on \fillin{GPU type and count}: \fillin{list the models you actually ran, e.g., gpt-oss-20b and Qwen3-30B-A3B-Instruct-2507}. Sampling follows each model card (temperature 1.0 with low reasoning effort for gpt-oss; 0.7 for Qwen3), with at most 2,048 output tokens per turn, a 32K context window and a 20-step budget.
+
+\subsection{Baselines, metrics and annotation}
+Non-LLM baselines: BM25 top-5 and title-only matching for search; regular-expression extraction (label-aligned); random and skill-overlap ranking (skill-overlap is label-aligned); a majority answer for application questions; and copying the profile's work history for tailoring. Success is defined per family by its grader: F1 $\geq$ 0.8 for search, all fields correct for extraction and application, a valid permutation with nDCG@5 $\geq$ 0.8 for ranking, and three bullets with no fabricated claim and coverage $\geq$ 0.5 of the target skills for tailoring. Confidence intervals bootstrap over tasks (1,000 resamples); paired conditions are compared with an exact McNemar test.
+
+For grader validation, both team members independently labeled the same \fillin{50} job--candidate pairs on the 0--3 fit scale and \fillin{50} tailoring outputs for fabrication, following written guidelines (\texttt{annotations/*\_GUIDELINES.txt}). Automatic labels were kept in a separate file until both of us finished.
+
+% =====================================================================
+\section{Preliminary Results}
+
+All numbers below come from our own runs on the development set (\fillin{N} tasks, \fillin{one} trial per model--harness pair).
+
+\subsection{Pilot A: what the dataset lets us test}
+\needspace{10\baselineskip}
+\textbf{Table 2.} Dataset audit.\par
+\resulttable{audit}
+
+\fillin{Two to four sentences: which fields are reliably stated in the text, which are not, and how that shaped the task suite. Example of the kind of statement to make, using your numbers: ``Salary is filled for X\% of postings and stated in the text for Y\% of those, so salary constraints are viable; experience level is stated for only Z\%, so we dropped it.''}
+
+\needspace{8\baselineskip}
+\textbf{Table 3.} Task suite after filtering.\par
+\resulttable{tasks}
+
+\subsection{Pilot C: baselines and models with three harness variants}
+\needspace{12\baselineskip}
+\textbf{Table 4.} Task success rate (\%) by family.\par
+\resulttable{success}
+
+\needspace{10\baselineskip}
+\textbf{Table 5.} Continuous scores by family.\par
+\resulttable{scores}
+
+\begin{center}
+\resultfigure{success_by_family.png}\\[2pt]
+{\small \textbf{Figure 1.} Task success by family, model and harness (development set).}
+\end{center}
+
+\fillin{Three to five sentences describing what Table 4 and Figure 1 show: how each model compares with the non-LLM baselines, which families are hardest, and whether the guides-only or sensors-only variant changes success for each small model. Describe; save interpretation for Section 5.}
+
+\subsection{How runs end}
+\needspace{10\baselineskip}
+\textbf{Table 6.} Process metrics per model--harness pair.\par
+\resulttable{process}
+
+\needspace{8\baselineskip}
+\textbf{Table 7.} How runs ended.\par
+\resulttable{finish}
+
+\needspace{8\baselineskip}
+\textbf{Table 8.} Paired comparison of the seed and sensors-only harnesses.\par
+\resulttable{compare}
+
+\fillin{Two to four sentences: the most common way runs fail for each model (e.g., no tool call, invalid answer, step budget), and whether recovery and verification reduced it.}
+
+\subsection{Pilot D: grader validation}
+\needspace{8\baselineskip}
+\textbf{Table 9.} Agreement between the two annotators and with the automatic graders.\par
+\resulttable{kappa}
+
+\fillin{One to three sentences: is agreement high enough to trust the automatic graders? Name any family you will flag.}
+
+\subsection{Error analysis}
+We labeled \fillin{40} randomly sampled failed runs (\texttt{results/error\_sample.csv}) with one primary category each.
+
+\needspace{10\baselineskip}
+{\small
+\begin{tabularx}{\linewidth}{L r r}
+\toprule
+Error category & \fillin{model 1} & \fillin{model 2} \\
+\midrule
+Malformed or missing tool call & \fillin{n} & \fillin{n} \\
+Repeated-action loop or step budget exhausted & \fillin{n} & \fillin{n} \\
+Constraint missed in a long description (e.g., salary or remote) & \fillin{n} & \fillin{n} \\
+Pay-period conversion error (hourly or monthly to yearly) & \fillin{n} & \fillin{n} \\
+Wrong fit judgment (skills or hard requirement) & \fillin{n} & \fillin{n} \\
+Fabricated qualification in tailoring & \fillin{n} & \fillin{n} \\
+Answer submitted before checking & \fillin{n} & \fillin{n} \\
+Other (describe) & \fillin{n} & \fillin{n} \\
+\bottomrule
+\end{tabularx}
+}
+
+\textbf{Table 10.} Primary error category of sampled failed runs.
+
+\textbf{Documented example.} \fillin{Paste a short, real excerpt of one failed trajectory (task, the model's key tool calls, its answer, and why the grader marked it wrong), and one successful trajectory for contrast. Keep each under ten lines.}
+
+% =====================================================================
+\section{Evaluation and Interpretation}
+
+\textbf{Why these metrics fit the question.} The question is about how much a harness \textit{changes} what a model can do, so the core metric is task success under each harness, compared within the same model on the same tasks. Success uses automatic graders against hidden answers, so it measures what the agent actually read and decided rather than how fluent its text looks. Process metrics (malformed calls, invalid answers, loops, steps, tokens) show \textit{how} a harness helps or hurts, which is what distinguishes guides from sensors. For the full study, the transfer ratio $R(m)$ and gap closure $C(m)$ from Milestone~1 put every small model on one scale.
+
+\textbf{Reference points.} Three reference points anchor the results: the non-LLM baselines (a floor that needs no model), each model under the seed harness (the baseline every harness change is measured against), and \fillin{the large model under the seed harness, if you ran it; otherwise say it is scheduled}. Label-aligned baselines are read as the ceiling of simple pattern matching: a family where they score near 100\% tests little language understanding, and we will weight it accordingly.
+
+\textbf{What the early evidence suggests.} \fillin{Two to four points, each tied to a table. For example: whether the small models clear the non-LLM baselines on every family; whether guides or sensors helped more (a first look at H2); whether harness-level failures (Table 7) explain most of the gap. Say plainly if a result went against your hypothesis.}
+
+\textbf{What it does not establish.}
+\begin{itemize}
+  \item \textbf{No transfer claim yet.} $H_L$ and $H_S$ are not tuned, so the pilot says nothing yet about SQ1 or SQ3. It tests the measurement setup and gives a first look at SQ2.
+  \item \textbf{Development set only.} These tasks also informed our design decisions, so the numbers may be optimistic; the final results will come from the untouched test split.
+  \item \textbf{Small samples and one trial.} With \fillin{N} tasks per family, confidence intervals are wide (Table 4), and a single trial cannot measure run-to-run consistency (pass$^k$).
+  \item \textbf{Text-derived labels.} Fit labels and skills come from a fixed vocabulary and keyword rules. Table 9 checks them against human judgment, but they can miss paraphrased skills.
+  \item \textbf{Synthetic profiles.} Profiles are cleaner than real r\'esum\'es, so absolute success rates likely overstate real-world performance. Comparisons between harnesses on the same profiles are less affected.
+\end{itemize}
+
+% =====================================================================
+\section{Challenges and Next Steps}
+
+\textbf{Challenges so far.}
+\begin{itemize}
+  \item \textbf{Compute.} \fillin{Describe your actual situation, e.g., access to an 80 GB GPU for gpt-oss-120b, cluster queue times, and how you worked around them.}
+  \item \textbf{Tool-call formats.} \fillin{Any parser or format issue you hit with a model, and how you handled it. If none, delete this item.}
+  \item \textbf{Answer-key leakage.} Designing sensors that help without revealing the answer key took a redesign (Section~1). We now test every tool for hidden-field leaks.
+  \item \textbf{Label noise.} Structured columns sometimes disagree with the text; the consistency filter removes these postings but also shrinks the sandbox (Table~2).
+\end{itemize}
+
+\textbf{Remaining tasks for the final submission}
+
+{\small
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{0.14\linewidth} L >{\raggedright\arraybackslash}p{0.2\linewidth}}
+\toprule
+When & Task & Lead \\
+\midrule
+Week 1 & Serve gpt-oss-120b; tune $H_L$ by greedy forward selection over the components on the development set (at most 12 configurations) & PN Tejeshwar Sarma \\
+Week 1 & Tune $H_S$ on Qwen3-30B-A3B with the same budget & PN Tejeshwar Sarma \\
+Week 2 & Transfer matrix: three models $\times$ \{$H_0$, $H_L$, $H_S$\} on the 180 test tasks, three trials each; compute $R(m)$, $C(m)$ and pass$^3$ & Satyam \\
+Week 2 & Leave-one-out ablations of $H_L$ on both small models (SQ2) & Both \\
+Week 3 & Workflow task family; external check on TalentCLEF 2026 Task A and JobResQA & Satyam \\
+Week 3 & Copilot UI and CI eval gate running on the self-hosted runner & PN Tejeshwar Sarma \\
+Week 3 (stretch) & Fairness probe with name and gender swaps & Both \\
+Week 4 & Error analysis of the transfer runs, dashboard, final report & Both \\
+\bottomrule
+\end{tabularx}
+}
+
+\textbf{Fallbacks.} If gpt-oss-120b cannot be served, we will use the largest open model that fits and report the change. If the full matrix is too slow, we will cut to 120 test tasks and two trials, keeping all three harnesses so the transfer metrics remain computable.
+
+% =====================================================================
+\section{Updated References}
+
+Each entry notes how the source shaped our design.
+
+\begin{enumerate}[leftmargin=*, itemsep=4pt]
+  \item Lin, J., et al.\ (2026). \href{https://arxiv.org/abs/2604.25850}{Agentic harness engineering: Observability-driven automatic evolution of coding-agent harnesses.} arXiv:2604.25850. Reports that an evolved harness transfers across model families; the optimistic prior for SQ1.
+  \item Wu, Y., Zhang, J., Shi, J., et al.\ (2026). \href{https://arxiv.org/abs/2609.01437}{HarnessDev: Can LLMs create and evolve their own agent harness?} arXiv:2609.01437. Finds harness gains depend on the executing model; the pessimistic prior, and the reason we tune $H_L$ and $H_S$ with identical budgets.
+  \item Jiang, M., et al.\ (2025). \href{https://arxiv.org/abs/2505.08120}{Putting it all into context: Simplifying agents with long-context language models.} arXiv:2505.08120. Scaffolds degrade when moved between models; motivates measuring failure modes, not only success.
+  \item Vats, N., \& Golev, O.\ (2026). \href{https://arxiv.org/abs/2607.22585}{The scaffold effect in coding agents: Harness choice as a hidden variable in coding-agent evaluation.} arXiv:2607.22585. Harness--model pairs as the unit of evaluation; we report tokens and failure categories alongside success, as they recommend.
+  \item Barbaste, P., Darrigol, T., Vu, G., \& Wiltberger, T.\ (2026). \href{https://arxiv.org/abs/2609.00006}{Harness engineering: Anatomy, architecture, and evolution of coding agents.} arXiv:2609.00006. Taxonomy of harness subsystems used to define our components.
+  \item Yao, S., Shinn, N., Razavi, P., \& Narasimhan, K.\ (2024). \href{https://arxiv.org/abs/2406.12045}{$\tau$-bench: A benchmark for tool-agent-user interaction in real-world domains.} arXiv:2406.12045. Template for a tool sandbox with state-based grading; source of pass$^k$.
+  \item Yang, J., et al.\ (2024). \href{https://arxiv.org/abs/2405.15793}{SWE-agent: Agent-computer interfaces enable automated software engineering.} \textit{NeurIPS 2024}. Interface design changes agent performance; motivates the broad-versus-narrow tool switch.
+  \item Gasco, L., et al.\ (2026). \href{https://arxiv.org/abs/2606.31692}{Overview of the TalentCLEF 2026.} arXiv:2606.31692. Planned external check on fit judgment.
+  \item Carrino, C.\,P., et al.\ (2026). \href{https://aclanthology.org/2026.resourceful-4.15/}{JobResQA.} \textit{RESOURCEFUL 2026}. Planned external check on extraction.
+  \item Wilson, K., \& Caliskan, A.\ (2024). \href{https://arxiv.org/abs/2407.20371}{Gender, race, and intersectional bias in r\'esum\'e screening via language model retrieval.} \textit{AIES 2024}. Design of the fairness probe.
+  \item Kwon, W., et al.\ (2023). \href{https://arxiv.org/abs/2309.06180}{Efficient memory management for large language model serving with PagedAttention.} \textit{SOSP 2023}. vLLM, our serving system.
+  \item Yang, A., et al.\ (2025). \href{https://arxiv.org/abs/2505.09388}{Qwen3 technical report.} arXiv:2505.09388; OpenAI (2025). \href{https://arxiv.org/abs/2508.10925}{gpt-oss-120b \& gpt-oss-20b model card.} arXiv:2508.10925. Model documentation, sampling settings and tool-call formats.
+  \item Kon, A., \& Zou, Z.\,Y.\ (2024). \href{https://www.kaggle.com/datasets/arshkon/linkedin-job-postings}{LinkedIn Job Postings (2023--2024).} Kaggle. The job board.
+  \item Tools: \href{https://docs.vllm.ai}{vLLM documentation}; \href{https://duckdb.org/docs/}{DuckDB}; \href{https://modelcontextprotocol.io}{Model Context Protocol} and its Python SDK.
+\end{enumerate}
+
+% =====================================================================
+\section*{AI Use Note}
+
+\fillin{Name every tool you used. A starting point you can edit:} We used Claude (Anthropic) to brainstorm project directions, draft parts of the proposal and this report, and scaffold the repository code (sandbox, harness, graders, analysis scripts and tests). \fillin{Add any other tools, e.g., a coding assistant.} We ran and checked all code ourselves, and every result in Section~4 comes from our own model runs and human labels; no AI-generated text is used as evidence.
+
+Outputs we checked, corrected or rejected:
+\begin{itemize}
+  \item The Milestone~1 design, drafted with AI assistance, specified code-based constraint and fabrication checkers. During implementation we found they would reuse our graders' rules and leak the answer key, so we replaced them with an evidence tool and model self-checks (Section~1).
+  \item The AI-generated MCP server code imported \texttt{FastMCP} from the 1.x SDK path, which failed with the installed 2.x SDK; we caught this in testing and added a version-compatible import.
+  \item \fillin{Optional: what you found when verifying the references the AI flagged as uncertain (e.g., author lists or arXiv IDs you corrected). Delete if you did not check.}
+\end{itemize}
+
+% =====================================================================
+\section*{Individual Contribution Statements}
+
+\textbf{Satyam.} \fillin{Work completed (e.g., data pipeline and audit, task suite and graders, baselines, analysis tables, annotation of N items). Decisions made (e.g., the consistency filter, the fit-label rubric). Planned responsibilities (e.g., transfer matrix, external checks, dashboard).}
+
+\textbf{PN Tejeshwar Sarma.} \fillin{Work completed (e.g., vLLM serving, modular harness, pilot runs, CI workflow, annotation of N items). Decisions made (e.g., sensor redesign, harness variants for the pilot). Planned responsibilities (e.g., tuning $H_L$ and $H_S$, copilot, CI eval gate).}
+
+\end{document}

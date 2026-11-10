@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobharness"
+version = "0.2.0"
+description = "Harness-transfer experiments for a job-search agent on self-hosted open models"
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.0", "numpy", "duckdb", "pyarrow", "pyyaml", "openai>=1.40", "matplotlib",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+mcp = ["mcp"]
+
+[tool.setuptools]
+packages = ["jobharness"]
