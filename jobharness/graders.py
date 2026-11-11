@@ -9,6 +9,7 @@ from . import vocab
 SUCCESS_F1 = 0.8
 SUCCESS_NDCG = 0.8
 SUCCESS_COVERAGE = 0.5
+SUCCESS_RELEVANCE = 0.6  # share of skills named in the bullets that the job actually asks for
 
 
 def f1(pred: set, gold: set) -> tuple[float, float, float]:
@@ -98,13 +99,23 @@ def fabrication_check(bullets: list[str], profile: dict) -> dict:
 
 
 def grade_tailoring(task, ans, profile):
+    """Tailored = covers the job-relevant skills AND stays focused on them.
+
+    target_skills = job skills the candidate truly has. coverage = share of target mentioned;
+    relevance = share of mentioned skills that are in target. A copy of the whole profile has
+    full coverage but low relevance, so it fails (v2, 2026-11-10; v1 had no relevance term).
+    """
     bullets = [str(b) for b in (ans or {}).get("bullets", [])]
     fab = fabrication_check(bullets, profile)
     target = set(task["answer"]["target_skills"])
-    coverage = len(set(fab["mentioned"]) & target) / len(target) if target else 1.0
-    ok = len(bullets) == 3 and fab["n_fabricated"] == 0 and coverage >= SUCCESS_COVERAGE
-    return {"success": ok, "score": coverage if fab["n_fabricated"] == 0 else 0.0,
-            "coverage": coverage, "n_bullets": len(bullets), **fab}
+    mentioned = set(fab["mentioned"])
+    coverage = len(mentioned & target) / len(target) if target else 1.0
+    relevance = len(mentioned & target) / len(mentioned) if mentioned else 0.0
+    ok = (len(bullets) == 3 and fab["n_fabricated"] == 0 and coverage >= SUCCESS_COVERAGE
+          and relevance >= SUCCESS_RELEVANCE)
+    f = 2 * coverage * relevance / (coverage + relevance) if coverage + relevance else 0.0
+    return {"success": ok, "score": f if fab["n_fabricated"] == 0 else 0.0,
+            "coverage": coverage, "relevance": relevance, "n_bullets": len(bullets), **fab}
 
 
 def grade(task, ans, profile=None):

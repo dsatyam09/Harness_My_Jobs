@@ -2,7 +2,7 @@
 
 Course project (IU graduate NLP, Applied NLP Project). Team: PN Tejeshwar Sarma and Satyam Dubey (sbdubey@iu.edu).
 Currently preparing **Milestone 2 (progress report)**; the final report follows.
-Last updated: 2026-11-10.
+Last updated: 2026-11-10 (session 3: issues 1–2 resolved).
 
 ## Rules (read first)
 1. **Never fabricate results.** Every number in a report comes from real runs or real human labels. Say plainly what has not been run.
@@ -38,16 +38,22 @@ Prior milestone lost 2 marks; reason unknown — ask the students for the feedba
 - Cluster check output: `/N/u/sbdubey/Quartz/cluster_check_h2_2026-11-07.txt`.
 
 ## Status (as of 2026-11-10) — all real, run on Quartz
-- 16/16 tests pass in the new env.
+- 17/17 tests pass in the new env.
 - **Pilot A, data audit** (8,000 sampled postings, seed 13): salary filled 23.7%, stated in text when filled 54.9%, consistent 66.7%; remote filled 12.4%, stated 46.8%, consistent 87.3%; work type stated 27.4%; **experience level stated in text only 16.7%** (justifies dropping it as a search constraint). Sandbox kept 4,663 postings; 1,844 have a role cluster; years-required stated in 50.2%.
 - **Tasks:** 64 profiles; 5 families; 48 tasks per family reached (12 dev / 36 test each; 60 dev / 180 test).
-- **Baselines (dev, n=12 per family):** bm25-top5 0%, title-only 0% (search); regex 75% (extraction, label-aligned); random 0%, skill-overlap 58% (ranking, label-aligned); majority 0% (application); **copy-profile 100% (tailoring)**.
+- **Baselines (dev, n=12 per family):** bm25-top5 0%, title-only 0% (search); regex 75% (extraction, label-aligned); random 0%, skill-overlap 58% (ranking, label-aligned); majority 0% (application); copy-profile 0% (tailoring, after the grader v2 fix below; it was 100% under v1).
 
 ### Issues found, to fix before final results
-1. **Tailoring grader is too easy**: the copy-profile baseline passes 12/12. Tailoring currently tests nothing; require job-specific content or tighten coverage/relevance. Document the change.
-2. **Search baselines score 0%**: check whether the F1>=0.8 threshold is too strict for small answer sets (2–9) or the baselines are weak; inspect before trusting.
+1. ~~Tailoring grader too easy~~ **Fixed 2026-11-10 (grader v2)**: added `relevance` = share of skills named in the bullets that are in target_skills; success needs relevance >= 0.6 plus coverage >= 0.5, 3 bullets, no fabrication. Copy-profile now 0/12; a focused oracle answer passes (test added). The 0.6 threshold was chosen after seeing copy-profile's max relevance (0.5) on dev, so it is tuned on dev and must be disclosed; the task files are unchanged. Real models not yet run on it, so the threshold may still need a human look at outputs.
+2. ~~Search baselines 0%~~ **Diagnosed, no grader change**: the F1>=0.8 threshold is not the cause. bm25-top5 precision is ~0 (ignores salary/remote filters); title-only recall is 0.2–1.0 but precision 0.02–0.28 (returns up to 50 title matches). Baselines are genuinely weak; mean F1 0.02 and 0.18.
 3. Regexes not yet hand-spot-checked on 50–100 real postings.
 4. `highest_degree` is graded by exact string match (paraphrase risk).
+
+### Session 3 (2026-11-10): small-model pilot, real runs
+- Models switched to 1.5-3B for the pilot: qwen2.5-3b, qwen2.5-1.5b, qwen3-1.7b (vLLM 0.33.0 in /N/scratch/sbdubey/envs/vllm, weights in /N/scratch/sbdubey/hf, incl. Qwen3.5-27B-FP8 downloaded but NOT served/tested). Job script: scripts/slurm_pilot_small.sbatch (servers must start one at a time; needs Python.h include path, VLLM_USE_FLASHINFER_SAMPLER=0).
+- Pilot: 540 runs (dev, h0/h0_guides/h0_sensors, 1 trial) in runs/pilot.jsonl. Overall success: 1.5b 2/0/5%, 3b 2/5/25% (sensors vs seed McNemar p=0.001), qwen3-1.7b 15/17/10%. Search and ranking ~0% for all. No large model yet, so no transfer claim.
+- Report draft: report/milestone2.tex (+ report/milestone2_overleaf.zip). Human items still open: annotation/kappa, error labels, contribution statements, owner column in next-steps table. Harness2 (Google, arXiv 2610.14224) cited, not run.
+- Refs verified on arXiv 2026-11-10 (Lin first author Jiahang Lin; Jiang = Mingjian Jiang, title 'Putting It All into Context: Simplifying Agents with LCLMs').
 
 ### Not done yet
 - vLLM not installed; no model weights downloaded; no Slurm jobs submitted; **no LLM pilot runs exist**. Awaiting the user's go-ahead to: install vLLM (separate env on an H100 node), download weights to scratch (gpt-oss-20b ~40GB, Qwen3-30B-A3B ~60GB, optionally gpt-oss-120b ~65GB), submit a 1h h100-debug smoke test under account r01789.
@@ -84,4 +90,5 @@ Four references were flagged as unverified: Lin et al. author list (2604.25850),
 - Milestone 1 design (AI-drafted) used code-based checkers that would leak the answer key; redesigned.
 - AI-written MCP server imported FastMCP from the 1.x path, failing on SDK 2.x; caught in tests, fixed.
 - Session 2026-11-08: Claude found that the copy-profile baseline passes all tailoring tasks (grader too easy) — a flaw in the AI-drafted grader design.
+- Session 2026-11-10: Claude diagnosed the tailoring fix and picked the relevance threshold after seeing dev baseline scores (circular: tuned on dev). Students should check this and the outputs of real models.
 - Add new cases here as they happen.

@@ -34,3 +34,14 @@ def test_fabrication_detects_unsupported_skill_and_years():
 def test_kappa():
     assert cohen_kappa([0, 1, 2, 3], [0, 1, 2, 3], "quadratic") == 1.0
     assert cohen_kappa(["yes", "no", "yes", "no"], ["yes", "no", "no", "yes"]) == 0.0
+
+
+def test_tailoring_requires_relevance_not_just_coverage():
+    from jobharness.graders import grade_tailoring
+    prof = {"skills": ["python", "sql", "excel", "tableau", "java"], "years_experience": 5}
+    task = {"answer": {"target_skills": ["python", "sql"]}}
+    focused = {"bullets": ["Built python pipelines", "Tuned sql queries", "Shipped python and sql tooling"]}
+    dump = {"bullets": ["python sql excel", "tableau java", "excel tableau"]}
+    assert grade_tailoring(task, focused, prof)["success"]
+    g = grade_tailoring(task, dump, prof)
+    assert g["coverage"] == 1.0 and g["relevance"] < 0.6 and not g["success"]
