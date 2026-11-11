@@ -90,9 +90,4 @@ python -m jobharness.run --tasks data/tasks_test.jsonl \
 python -m jobharness.analyze runs/test.jsonl --large gpt-oss-120b --h0 h0 --hl hL --hs hS
 ```
 
-## Rules for reporting
 
-* Only numbers produced by your own runs go in the report. Mock models (`mock-*`) and the
-  synthetic fixture exist for tests; never report numbers from them.
-* Report failed and surprising results as they are.
-* Keep the test split untouched until the final evaluation.
